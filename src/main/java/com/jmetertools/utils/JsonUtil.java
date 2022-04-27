@@ -1,9 +1,12 @@
-package com.meterspheretools.utils
+package com.jmetertools.utils;
 
-import com.alibaba.fastjson.JSON
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 用于处理json的工具类。根据fastjson官方最佳实践文档，使用fastjson时有以下地方需要注意
@@ -17,20 +20,20 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
  *      特别是对于Fastjson，由于性能优化的考虑，这两个执行的代码是不一样的，可能导致不一样的结果。
  * 8. 尽量不要在使用过多的层次嵌套的同时使用泛型（List、Map等），可能导致类型丢失，而且问题比较难查。
  */
-class JsonUtil {
+public class JsonUtil {
     /**
      * 从JsonArray中获取指定key的所有value集合
      * @param jsonArray 待查找的Json Array
      * @param key 需要查找的键
      * @return 字符串集合
      */
-    static Set<String> getValueSetWithKey(JSONArray jsonArray, String key){
+    public static Set<String> getValueSetWithKey(JSONArray jsonArray, String key){
         Set<String> setToReturn = new HashSet<>();
         jsonArray.forEach(o -> {
-            JSONObject jo = (JSONObject) o
-            setToReturn.add(jo.getString(key))
-        })
-        return setToReturn
+            JSONObject jo = (JSONObject) o;
+            setToReturn.add(jo.getString(key));
+        });
+        return setToReturn;
     }
 
     /**
@@ -38,8 +41,8 @@ class JsonUtil {
      * @param jsonString： json字符串
      * @return json对象
      */
-    static parseJsonObject(String jsonString){
-        return JSON.parseObject(jsonString)
+    public static JSONObject parseJsonObject(String jsonString){
+        return JSON.parseObject(jsonString);
     }
 
     /**
@@ -47,8 +50,8 @@ class JsonUtil {
      * @param jsonObject json对象
      * @return 字符串
      */
-    static toString(JSONObject jsonObject){
-        return jsonObject.toString()
+    public static String toString(JSONObject jsonObject){
+        return jsonObject.toString();
     }
 
     /**
@@ -57,8 +60,8 @@ class JsonUtil {
      * @param className 需要映射的类
      * @return 类的实例对象
      */
-    static parseJavaObject(String jsonString,Class className){
-        return JSON.parseObject(jsonString, className)
+    public <T> Object parseJavaObject(String jsonString, Class<T> className){
+        return JSON.parseObject(jsonString, className);
     }
 
     /**
@@ -66,8 +69,8 @@ class JsonUtil {
      * @param object 待序列化的对象
      * @return 字符串
      */
-    static <T> String toString(T object){
-        return JSON.toJSONString(object)
+    public static <T> String toString(T object){
+        return JSON.toJSONString(object);
     }
 
     /**
@@ -76,8 +79,8 @@ class JsonUtil {
      * @param feature 序列化特性，可以对序列化后的字符串进行自定义格式配置。eg: QuoteFieldNames可使key使用引号; UseSingleQuotes可使用单引号
      * @return 字符串
      */
-    static <T> String toString(T object, SerializerFeature feature){
-        return JSON.toJSONString(object, feature)
+    public static <T> String toString(T object, SerializerFeature feature){
+        return JSON.toJSONString(object, feature);
     }
 
 }

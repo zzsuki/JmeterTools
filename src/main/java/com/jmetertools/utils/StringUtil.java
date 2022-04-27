@@ -1,8 +1,8 @@
-package com.meterspheretools.utils
+package com.jmetertools.utils;
 
-class StringUtil {
+public class StringUtil {
     public static int parseStringIntoInt(String sourceString){
-        return Integer.parseInt(sourceString)
+        return Integer.parseInt(sourceString);
     }
 
     public static double parseStringIntoFloat(String sourceString){

@@ -1,17 +1,32 @@
-package com.meterspheretools.utils
+package com.jmetertools.utils;
 
-class ByteUtil {
+import java.math.BigInteger;
+
+public class ByteUtil {
+
     /**
-     * 将字节数组进行切片
-     * @param src_byte byte[] 源字节数组
-     * @param off int 偏移量
-     * @param length int 截取的长度
-     * @return 截取后的字节数组
+     * 字节数组切片， 从起始位置截取至指定位置
+     * @param srcByte 源字节数组
+     * @param beginIndex 其实下标
+     * @param endIndex 结束位置
+     * @return 截取后的字节数组，截取范围为[beginIndex, endIndex)
      */
-    public static byte[] subByteArray(byte[] src_byte,int off,int length){
-        byte[] new_byte = new byte[length]
-        System.arraycopy(src_byte, off, new_byte, 0, length)
-        return new_byte
+    public static byte[] subByteArray(byte[] srcByte, int beginIndex, int endIndex){
+        byte[] newByte = new byte[endIndex - beginIndex];
+        System.arraycopy(srcByte, beginIndex, newByte, 0, endIndex - beginIndex);
+        return newByte;
+    }
+
+    /**
+     * 字节数组切片，从起始位置截取其后所有元素
+     * @param srcByte byte[] 源字节数组
+     * @param beginIndex 起始位置
+     * @return 截取后的字节数组，截取范围为[beginIndex, srcByte.length)
+     */
+    public static byte[] subByteArray(byte[] srcByte, int beginIndex){
+        byte[] newByte = new byte[srcByte.length - beginIndex];
+        System.arraycopy(srcByte, beginIndex, newByte, 0, srcByte.length - beginIndex);
+        return newByte;
     }
 
     /**
@@ -21,7 +36,7 @@ class ByteUtil {
      * @return 转换后的字符串
      */
     public static String binary(byte[] bytes, int radix){
-        return new BigInteger(1, bytes).toString(radix)  // 这里的1代表正数
+        return new BigInteger(1, bytes).toString(radix);  // 这里的1代表正数
     }
 
     /**
