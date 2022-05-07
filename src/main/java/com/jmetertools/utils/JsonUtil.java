@@ -3,7 +3,9 @@ package com.jmetertools.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONPath;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.jmetertools.base.exceptions.FailException;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -22,12 +24,109 @@ import java.util.Set;
  */
 public class JsonUtil {
     /**
+     * 根据key获取对应的值，只会返回第一个匹配到的值；且只返回符合目标类型的值；例如：
+     * 当存在{key: 123, key: "abc"}时，如果传入的targetClass是String,则只返回abc
+     * @param object 待查找对象
+     * @param key 待查找的key
+     * @param targetClass key对应的类
+     * @param <T> 泛型类型
+     * @return targetClass的实例
+     */
+    public static <T> T getValueByKey(Object object, String key, Class<T> targetClass) {
+        // object 状态判断，为空或为string类型则返回null
+        if (object == null || object.getClass() == String.class) {
+            return null;
+        }
+        // 两种情况，可能是Object 或 array对象
+        // 1. 如果是Object对象
+        if (object.getClass() == JSONObject.class) {
+            JSONObject jb = (JSONObject) object;
+            // 如果object包含key对应的类型
+            if (jb.containsKey(key) && targetClass.isInstance(jb.getObject(key, targetClass))) {
+                return jb.getObject(key, targetClass);
+            }
+            // object中不包含key,则需要遍历object中的元素
+            for (Object o : jb.values()) {
+                T tmp = getValueByKey(o, key, targetClass);
+                if (tmp != null) return tmp;
+            }
+        // 2. 如果是array对象
+        } else if (object.getClass() == JSONArray.class) {
+            JSONArray ja = (JSONArray) object;
+            for (Object o : ja) {
+                T tmp = getValueByKey(o, key, targetClass);
+                if (tmp != null) return tmp;
+            }
+        } else {
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * 根据key获取对应的值，只会返回第一个匹配到的值
+     * @param object 待查找对象
+     * @param key 待查找的key
+     * @return 将值以字符串形式返回，object为空或null时，返回null
+     */
+    public static String getValueByKey(Object object, String key) {
+        // object 状态判断，为空或为string类型则返回null
+        if (object == null || object.getClass() == String.class) {
+            return null;
+        }
+        // 两种情况，可能是Object 或 array对象
+        // 1. 如果是Object对象
+        if (object.getClass() == JSONObject.class) {
+            JSONObject jb = (JSONObject) object;
+            // 如果object包含key对应的类型
+            if (jb.containsKey(key)) {
+                return jb.getString(key);
+            }
+            // object中不包含key,则需要遍历object中的元素
+            for (Object o : jb.values()) {
+                String tmp = getValueByKey(o, key);
+                if (tmp != null) return tmp;
+            }
+            // 2. 如果是array对象
+        } else if (object.getClass() == JSONArray.class) {
+            JSONArray ja = (JSONArray) object;
+            for (Object o : ja) {
+                String tmp = getValueByKey(o, key);
+                if (tmp != null) return tmp;
+            }
+        } else {
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * 使用json path获取json对象中的指定值
+     * @param object 待查找对象
+     * @param jsonPath json path表达式
+     * @return 查找结果
+     */
+    public static Object getValueByJsonPath(Object object, String jsonPath){
+        return JSONPath.eval(object, jsonPath);
+    }
+
+    /**
+     * 使用json path获取json字符串中的指定值
+     * @param object 待查找的json 字符串
+     * @param jsonPath json path表达式
+     * @return 查找结果
+     */
+    public static Object getValueByJsonPath(String object, String jsonPath){
+        return JSONPath.read(object, jsonPath);
+    }
+
+    /**
      * 从JsonArray中获取指定key的所有value集合
      * @param jsonArray 待查找的Json Array
      * @param key 需要查找的键
      * @return 字符串集合
      */
-    public static Set<String> getValueSetWithKey(JSONArray jsonArray, String key){
+    public static Set<String> getStringSetWithKey(JSONArray jsonArray, String key){
         Set<String> setToReturn = new HashSet<>();
         jsonArray.forEach(o -> {
             JSONObject jo = (JSONObject) o;
@@ -37,12 +136,46 @@ public class JsonUtil {
     }
 
     /**
+     * 从JsonArray中获取指定key的所有value集合
+     * @param jsonArray 待查找的Json Array
+     * @param key 需要查找的键
+     * @return 整数集合
+     */
+    public static Set<Integer> getIntegerSetWithKey(JSONArray jsonArray, String key){
+        Set<Integer> setToReturn = new HashSet<>();
+        jsonArray.forEach(o -> {
+            JSONObject jo = (JSONObject) o;
+            setToReturn.add(jo.getInteger(key));
+        });
+        return setToReturn;
+    }
+
+
+    /**
+     * 反序列化json
+     * @param jsonString: json字符串
+     * @return json object或json array
+     */
+    public static Object parse(String jsonString){
+        return JSON.parse(jsonString);
+    }
+
+    /**
      * 将json字符串转换为json对象
      * @param jsonString： json字符串
      * @return json对象
      */
-    public static JSONObject parseJsonObject(String jsonString){
+    public static JSONObject parseObject(String jsonString){
         return JSON.parseObject(jsonString);
+    }
+
+    /**
+     * 反序列化数组
+     * @param jsonString json字符串
+     * @return json数组
+     */
+    public static JSONArray parseArray(String jsonString){
+        return JSON.parseArray(jsonString);
     }
 
     /**
@@ -60,7 +193,7 @@ public class JsonUtil {
      * @param className 需要映射的类
      * @return 类的实例对象
      */
-    public <T> Object parseJavaObject(String jsonString, Class<T> className){
+    public <T> Object parseJavaBean(String jsonString, Class<T> className){
         return JSON.parseObject(jsonString, className);
     }
 

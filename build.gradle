@@ -3,6 +3,9 @@ plugins {
     id 'java'
 }
 
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
 group 'zzsuki'
 version '1.0-SNAPSHOT'
 
@@ -10,13 +13,13 @@ repositories {
     mavenCentral()
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs 'src/main/java'
-        }
-    }
-}
+//sourceSets {
+//    main {
+//        java {
+//            srcDirs 'src/main/java'
+//        }
+//    }
+//}
 
 dependencies {
     implementation 'org.codehaus.groovy:groovy-all:3.0.10'
@@ -27,6 +30,11 @@ dependencies {
     implementation group: 'com.alibaba', name: 'fastjson', version: '1.2.76'
 }
 
+//java {
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(8))
+//    }
+//}
 
 test {
     useJUnitPlatform()
