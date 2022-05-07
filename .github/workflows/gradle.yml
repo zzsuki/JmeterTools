@@ -13,6 +13,9 @@ on:
   pull_request:
     branches: [ main ]
 
+env: # 设置环境变量
+  TZ: Asia/Shanghai # 时区
+
 permissions:
   contents: read
 
