@@ -16,7 +16,7 @@ public class UmpTokenCipher extends AbCipher{
 
     @Override
     public String encrypt(String word) {
-        String salt = String.join("", RandomUtil.getRandomSample(Constant.BROAD_CHAR_SET.get(), 8));
+        String salt = String.join("", RandomUtil.getSample(Constant.BROAD_CHAR_SET.get(), 8));
         String withSalt = word.substring(0, 10) +
                 salt.substring(0, 2) +
                 word.substring(10, 20) +

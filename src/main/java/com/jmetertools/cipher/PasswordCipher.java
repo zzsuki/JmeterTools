@@ -22,9 +22,9 @@ public class PasswordCipher extends AbCipher{
     @Override
     public String encrypt(String word) {
         int passwordLen = word.length();
-        String salt = String.join("", RandomUtil.getRandomSample(Constant.BROAD_CHAR_SET.get(), 8));
+        String salt = String.join("", RandomUtil.getSample(Constant.BROAD_CHAR_SET.get(), 8));
         int paddingLen = 22 - passwordLen;
-        String padding = String.join("", RandomUtil.getRandomSample(Constant.BROAD_CHAR_SET.get(), paddingLen));
+        String padding = String.join("", RandomUtil.getSample(Constant.BROAD_CHAR_SET.get(), paddingLen));
         String withSalt = word.substring(0, 8) + salt + word.substring(8);
         String withPadding = withSalt + padding + String.format("%02d", passwordLen);
         return this.doFinalEncrypt(withPadding);

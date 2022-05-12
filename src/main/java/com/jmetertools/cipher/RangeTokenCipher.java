@@ -22,7 +22,7 @@ public class RangeTokenCipher extends AbCipher{
     private static String getChaosToken(String token){
         List<String> chaosSet = Constant.ALPHABET.get();
         chaosSet.addAll(Constant.NUMBERS.get());
-        String chaos = String.join("", RandomUtil.getRandomSample(chaosSet, 16));
+        String chaos = String.join("", RandomUtil.getSample(chaosSet, 16));
         return token + chaos;
     }
 
@@ -59,7 +59,7 @@ public class RangeTokenCipher extends AbCipher{
      */
     @Override
     public String encrypt(String word) {
-        String salt = String.join("", RandomUtil.getRandomSample(Constant.BROAD_CHAR_SET.get(), 8));
+        String salt = String.join("", RandomUtil.getSample(Constant.BROAD_CHAR_SET.get(), 8));
         return this.doFinalEncrypt(combineSaltWithChaosToken(word, salt));
     }
 
@@ -70,7 +70,7 @@ public class RangeTokenCipher extends AbCipher{
      */
     public String encryptRawToken(String word) {
         String chaosToken = getChaosToken(word);
-        String salt = String.join("", RandomUtil.getRandomSample(Constant.BROAD_CHAR_SET.get(), 8));
+        String salt = String.join("", RandomUtil.getSample(Constant.BROAD_CHAR_SET.get(), 8));
         return this.doFinalEncrypt(combineSaltWithChaosToken(chaosToken, salt));
     }
 
