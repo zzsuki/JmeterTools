@@ -4,12 +4,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.jmetertools.base.Constant;
 import com.jmetertools.utils.DecodeEncode;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -32,6 +31,12 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 public class Request {
     private static Logger logger = LogManager.getLogger(Request.class);
+
+    /**
+     * 是否需要处理响应头
+     */
+    public static boolean HEADER_HANDLE = false;
+
 
     /**
      * 方法已重载，获取{@link HttpGet}对象
@@ -174,5 +179,112 @@ public class Request {
     public static String convertJsonToArguments(JSONObject argument) {
         return argument == null || argument.isEmpty() ? EMPTY : argument.keySet().stream().filter(x -> argument.get(x) != null).map(x -> x.toString() + EQUAL + DecodeEncode.encodeUrl(argument.getString(x.toString()))).collect(Collectors.joining("&", UNKNOW, EMPTY)).toString();
     }
+
+    /**
+     * 获取{@link HttpPut}请求,{@link String}传参格式
+     *
+     * @param url url地址
+     * @param params 请求参数
+     * @return put对象
+     */
+    public static HttpPut getHttpPut(String url, String params) {
+        HttpPut httpPut = getHttpPut(url);
+        if (StringUtils.isNotBlank(params))
+            httpPut.setEntity(new StringEntity(params, DEFAULT_CHARSET.toString()));
+        httpPut.addHeader(HttpClientConstant.ContentType_JSON);
+        return httpPut;
+    }
+
+    /**
+     * 获取{@link HttpPut}请求,{@link JSONObject}表单格式
+     *
+     * @param url url地址
+     * @param params 请求参数
+     * @return put对象
+     */
+    public static HttpPut getHttpPut(String url, JSONObject params) {
+        HttpPut httpPut = getHttpPut(url);
+        if (params != null && !params.isEmpty())
+            setFormHttpEntity(httpPut, params);
+        httpPut.addHeader(HttpClientConstant.ContentType_FORM);
+        return httpPut;
+    }
+
+    /**
+     * 获取{@link HttpPut}请求对象
+     *
+     * @param url url地址
+     * @return put对象
+     */
+    public static HttpPut getHttpPut(String url) {
+        return new HttpPut(url);
+    }
+
+    /**
+     * 获取{@link HttpDelete}对象
+     *
+     * @param url url地址
+     * @return delete对象
+     */
+    public static HttpDelete getHttpDelete(String url) {
+        return new HttpDelete(url);
+    }
+
+    /**
+     * 获取{@link HttpPatch}对象
+     *
+     * @param url url地址
+     * @return patch对象
+     */
+    public static HttpPatch getHttpPatch(String url) {
+        return new HttpPatch(url);
+    }
+
+    /**
+     * 获取{@link HttpPatch}对象
+     *
+     * @param url url地址
+     * @param params 请求参数
+     * @return path对象
+     */
+    public static HttpPatch getHttpPatch(String url, JSONObject params) {
+        HttpPatch httpPatch = getHttpPatch(url);
+        if (params != null && !params.isEmpty())
+            httpPatch.setEntity(new StringEntity(params.toString(), DEFAULT_CHARSET.toString()));
+        httpPatch.addHeader(HttpClientConstant.ContentType_JSON);
+        return httpPatch;
+    }
+
+    /**
+     * 响应结束之后，处理响应头信息，如set-cookie内容
+     *
+     * @param response 响应内容
+     * @return json对象
+     */
+    private static JSONObject afterResponse(CloseableHttpResponse response) {
+        if (!HEADER_HANDLE) return null;
+        Header[] allHeaders = response.getAllHeaders();
+        JSONObject hs = new JSONObject();
+        JSONObject cookie = new JSONObject();
+        for (Header header : allHeaders) {
+            // 如果发现set-cookie字段
+            if (header.getName().equals(HttpClientConstant.SET_COOKIE)) {
+                String[] split = header.getValue().split(EQUAL, 2);
+                cookie.put(split[0], split[1]);
+                continue;
+            }
+            // 如果未发现
+            hs.compute(header.getName(), (x, y) -> {
+                if (y == null) {
+                    return header.getValue();
+                } else {
+                    return hs.getString(header.getName()) + PART + header.getValue();
+                }
+            });
+        }
+        if (!cookie.isEmpty()) hs.put(HttpClientConstant.COOKIE, cookie);
+        return hs;
+    }
+
 
 }
