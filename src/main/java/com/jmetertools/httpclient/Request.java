@@ -1,290 +1,298 @@
 package com.jmetertools.httpclient;
 
 import com.alibaba.fastjson.JSONObject;
-import com.jmetertools.base.Constant;
-import com.jmetertools.utils.DecodeEncode;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.*;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.message.BasicNameValuePair;
+import com.jmetertools.base.exceptions.RequestException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.RequestBuilder;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static com.jmetertools.base.Constant.*;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static com.jmetertools.base.Constant.EMPTY;
 
-public class Request {
+public class Request implements Serializable, Cloneable {
+    private static final long serialVersionUID = -4153600036943378727L;
     private static Logger logger = LogManager.getLogger(Request.class);
 
     /**
-     * 是否需要处理响应头
+     * 请求类型，true为get，false为post
      */
-    public static boolean HEADER_HANDLE = false;
-
+    RequestType requestType;
 
     /**
-     * 方法已重载，获取{@link HttpGet}对象
-     * <p>方法重载，主要区别参数，会自动进行urlencode操作</p>
-     *
-     * @param url  表示请求地址
-     * @param args 表示传入数据
-     * @return 返回get对象
+     * 请求对象
      */
-    public static HttpGet getHttpGet(String url, JSONObject args) {
-        if (args == null || args.isEmpty()) return getHttpGet(url);
-        String uri = url + convertJsonToArguments(args);
-        return getHttpGet(uri);
+    HttpRequestBase request;
+
+    /**
+     * host地址
+     */
+    String host = EMPTY;
+
+    /**
+     * 接口地址
+     */
+    String path = EMPTY;
+
+    /**
+     * 请求地址,如果为空则由host和path拼接
+     */
+    String uri = EMPTY;
+
+    /**
+     * header集合
+     */
+    List<Header> headers = new ArrayList<>();
+
+    /**
+     * get参数
+     */
+    JSONObject args = new JSONObject();
+
+    /**
+     * post参数,表单
+     */
+    JSONObject params = new JSONObject();
+
+    /**
+     * json参数,用于POST和put
+     */
+    JSONObject json = new JSONObject();
+
+    /**
+     * 响应,若没有这个参数, request对象转换成json对象时会自动调用getResponse方法
+     */
+    JSONObject response = new JSONObject();
+
+    /**
+     * 构造方法
+     *
+     * @param requestType 请求类型
+     */
+    private Request(RequestType requestType) {
+        this.requestType = requestType;
     }
 
     /**
-     * 方法已重载，获取{@link HttpGet}对象
-     * <p>方法重载，主要区别参数，会自动进行url encode操作</p>
+     * 获取get对象
      *
-     * @param url 表示请求地址
-     * @return 返回get对象
+     * @return get请求
      */
-    public static HttpGet getHttpGet(String url){
-        return new HttpGet(url);
+    static Request isGet() {
+        return new Request(RequestType.GET);
     }
 
     /**
-     * 获取{@link HttpPost}对象，以form表单提交数据
-     * <p>方法重载，文字信息form表单提交，文件信息二进制流提交，具体参照文件上传的方法主食，post请求可以不需要参数，暂时不支持其他参数类型，如果是公参需要在url里面展示，需要传一个json对象，一般默认args为get公参，params为post请求参数</p>
-     * 请求header参数类型为{@link HttpClientConstant#ContentType_FORM}
+     * 获取post对象
      *
-     * @param url    请求地址
-     * @param params 请求数据，form表单形式设置请求实体
-     * @return 返回post对象
+     * @return post请求
      */
-    public static HttpPost getHttpPost(String url, JSONObject params) {
-        HttpPost httpPost = getHttpPost(url);
-        if (params != null && !params.isEmpty()) setFormHttpEntity(httpPost, params);
-        httpPost.addHeader(HttpClientConstant.ContentType_FORM);
-        return httpPost;
+    static Request isPost() {
+        return new Request(RequestType.POST);
     }
 
     /**
-     * 获取{@link HttpPost}对象，没有参数设置
-     * <p>方法重载，文字信息form表单提交，文件信息二进制流提交，具体参照文件上传的方法，post请求可以不需要参数，暂时不支持其他参数类型，如果是公参需要在url里面展示，需要传一个json对象，一般默认args为get公参，params为post请求参数</p>
-     *
-     * @param url url地址
-     * @return HttpPost对象
+     * 获取put请求对象
+     * @return put请求
      */
-    public static HttpPost getHttpPost(String url) {
-        return new HttpPost(url);
+    static Request isPut() {
+        return new Request(RequestType.PUT);
     }
 
     /**
-     * 获取{@link HttpPost}对象，{@link JSONObject}格式对象，传参时手动{@link JSONObject#toString()}方法,现在大多数情况下由 Ibase项目基础类完成
-     * <p>新重载方法，适应{@link HttpPost}请求{@link JSONObject}传参，默认{@link Constant#DEFAULT_CHARSET}编码格式</p>
-     * 请求header参数类型为{@link HttpClientConstant#ContentType_JSON}
-     *
-     * @param url 请求url
-     * @param params 请求参数
-     * @return post对象
+     * 获取delete请求对象
+     * @return delete请求
      */
-    public static HttpPost getHttpPost(String url, String params) {
-        HttpPost httpPost = getHttpPost(url);
-        if (StringUtils.isNotBlank(params))
-            httpPost.setEntity(new StringEntity(params, DEFAULT_CHARSET.toString()));
-        httpPost.addHeader(HttpClientConstant.ContentType_JSON);
-        return httpPost;
+    static Request isDelete() {
+        return new Request(RequestType.DELETE);
     }
 
     /**
-     * 获取 {@link HttpPost} 对象
-     * <p>方法重载，文字信息{@link HttpClientConstant#ContentType_FORM}表单提交，文件信息二进制流提交，具体参照文件上传的方法主食，post请求可以不需要参数，暂时不支持其他参数类型，如果是公参需要在url里面展示，需要传一个{@link JSONObject}对象，一般默认args为{@link HttpGet}公参，params为{@link HttpPost}请求参数</p>
+     * 设置host
      *
-     * @param url    请求地址
-     * @param params 请求参数，其中二进制流必须是 file
-     * @param file   文件
-     * @return post对象
+     * @param host host地址
+     * @return 更新后的实例
      */
-    public static HttpPost getHttpPost(String url, JSONObject params, File file) {
-        HttpPost httpPost = getHttpPost(url);
-        if (params != null && !params.isEmpty()) setMultipartEntityEntity(httpPost, params, file);
-        httpPost.addHeader(HttpClientConstant.ContentType_FORM);
-        return httpPost;
+    Request setHost(String host) {
+        this.host = host;
+        return this;
     }
 
     /**
-     * 设置二进制流实体，params 里面参数值为 {@link HttpClientConstant#FILE_UPLOAD_KEY}
+     * 设置接口地址
      *
-     * @param request 请求对象
-     * @param params  请求参数
-     * @param file    文件
+     * @param path 接口地址
+     * @return 更新后的实例
      */
-    private static void setMultipartEntityEntity(HttpEntityEnclosingRequestBase request, JSONObject params, File file) {
-        logger.debug("上传文件名：{}", file.getAbsolutePath());
-        String fileName = file.getName();
-        InputStream inputStream = null;
-        try {
-            inputStream = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            logger.warn("读取文件失败！", e);
-        }
-        Iterator<String> keys = params.keySet().iterator();// 遍历 params 参数和值
-        MultipartEntityBuilder builder = MultipartEntityBuilder.create();// 新建MultipartEntityBuilder对象
-        while (keys.hasNext()) {
-            String key = keys.next();
-            String value = params.getString(key);
-            if (value.equalsIgnoreCase(HttpClientConstant.FILE_UPLOAD_KEY)) {
-                builder.addBinaryBody(key, inputStream, ContentType.create(HttpClientConstant.CONTENT_TYPE_MULTIPART_FORM), fileName);// 设置流参数
-            } else {
-                StringBody body = new StringBody(value, ContentType.create(HttpClientConstant.CONTENT_TYPE_TEXT, DEFAULT_CHARSET));// 设置普通参数
-                builder.addPart(key, body);
-            }
-        }
-        HttpEntity entity = builder.build();
-        request.setEntity(entity);
+    Request setPath(String path) {
+        this.path = path;
+        return this;
     }
 
     /**
-     * 设置{@link HttpPost}接口上传表单，默认的编码格式
-     * 默认编码格式{@link Constant#DEFAULT_CHARSET}
+     * 设置uri
      *
-     * @param request 请求对象
-     * @param params  参数
+     * @param uri uri地址
+     * @return 更新后的实例
      */
-    private static void setFormHttpEntity(HttpEntityEnclosingRequestBase request, JSONObject params) {
-        List<NameValuePair> formedParams = new ArrayList<NameValuePair>();
-        // 将params依次转化为value pair对象
-        params.keySet().forEach(x -> formedParams.add(new BasicNameValuePair(x, params.getString(x))));
-        UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formedParams, DEFAULT_CHARSET);
-        request.setEntity(entity);
+    Request setUri(String uri) {
+        this.uri = uri;
+        return this;
     }
 
     /**
-     * 把json数据转化为参数，为get请求和post请求string entity的时候使用
+     * 添加get参数
      *
-     * @param argument 请求参数，json数据类型，map类型，可转化
-     * @return 返回拼接参数后的地址
+     * @param key 参数名
+     * @param value 参数值
+     * @return 更新后的实例
      */
-    public static String convertJsonToArguments(JSONObject argument) {
-        return argument == null || argument.isEmpty() ? EMPTY : argument.keySet().stream().filter(x -> argument.get(x) != null).map(x -> x.toString() + EQUAL + DecodeEncode.encodeUrl(argument.getString(x.toString()))).collect(Collectors.joining("&", UNKNOW, EMPTY)).toString();
+    Request addArgs(String key, Object value) {
+        args.put(key, value);
+        return this;
     }
 
     /**
-     * 获取{@link HttpPut}请求,{@link String}传参格式
+     * 添加post参数
      *
-     * @param url url地址
-     * @param params 请求参数
-     * @return put对象
+     * @param key 参数名
+     * @param value 参数值
+     * @return 更新后的实例
      */
-    public static HttpPut getHttpPut(String url, String params) {
-        HttpPut httpPut = getHttpPut(url);
-        if (StringUtils.isNotBlank(params))
-            httpPut.setEntity(new StringEntity(params, DEFAULT_CHARSET.toString()));
-        httpPut.addHeader(HttpClientConstant.ContentType_JSON);
-        return httpPut;
+    Request addParam(String key, Object value) {
+        params.put(key, value);
+        return this;
     }
 
     /**
-     * 获取{@link HttpPut}请求,{@link JSONObject}表单格式
+     * 添加json参数
      *
-     * @param url url地址
-     * @param params 请求参数
-     * @return put对象
+     * @param key 参数名
+     * @param value 参数值
+     * @return 更新后的实例
      */
-    public static HttpPut getHttpPut(String url, JSONObject params) {
-        HttpPut httpPut = getHttpPut(url);
-        if (params != null && !params.isEmpty())
-            setFormHttpEntity(httpPut, params);
-        httpPut.addHeader(HttpClientConstant.ContentType_FORM);
-        return httpPut;
+    Request addJson(String key, Object value) {
+        json.put(key, value);
+        return this;
     }
 
     /**
-     * 获取{@link HttpPut}请求对象
+     * 添加header
      *
-     * @param url url地址
-     * @return put对象
+     * @param key 参数名
+     * @param value 参数值
+     * @return 更新后的实例
      */
-    public static HttpPut getHttpPut(String url) {
-        return new HttpPut(url);
+    Request addHeader(Object key, Object value) {
+        headers.add(EntityHandler.getHeader(key.toString(), value.toString()));
+        return this;
     }
 
     /**
-     * 获取{@link HttpDelete}对象
+     * 添加header
      *
-     * @param url url地址
-     * @return delete对象
+     * @param header header对象
+     * @return 更新后的实例
      */
-    public static HttpDelete getHttpDelete(String url) {
-        return new HttpDelete(url);
+    Request addHeader(Header header) {
+        headers.add(header);
+        return this;
     }
 
     /**
-     * 获取{@link HttpPatch}对象
+     * 批量添加header
      *
-     * @param url url地址
-     * @return patch对象
+     * @param header header对象
+     * @return 更新后的实例
      */
-    public static HttpPatch getHttpPatch(String url) {
-        return new HttpPatch(url);
+    Request addHeader(List<Header> header) {
+        Iterator<Header> iterator = header.iterator();
+        headers.addAll(header);
+        return this;
     }
 
     /**
-     * 获取{@link HttpPatch}对象
+     * 增加header中cookies
      *
-     * @param url url地址
-     * @param params 请求参数
-     * @return path对象
+     * @param cookies json对象的cookie
+     * @return 更新后的实例
      */
-    public static HttpPatch getHttpPatch(String url, JSONObject params) {
-        HttpPatch httpPatch = getHttpPatch(url);
-        if (params != null && !params.isEmpty())
-            httpPatch.setEntity(new StringEntity(params.toString(), DEFAULT_CHARSET.toString()));
-        httpPatch.addHeader(HttpClientConstant.ContentType_JSON);
-        return httpPatch;
+    Request addCookies(JSONObject cookies) {
+        headers.add(EntityHandler.getCookies(cookies));
+        return this;
     }
 
-    /**
-     * 响应结束之后，处理响应头信息，如set-cookie内容
-     *
-     * @param response 响应内容
-     * @return json对象
-     */
-    private static JSONObject afterResponse(CloseableHttpResponse response) {
-        if (!HEADER_HANDLE) return null;
-        Header[] allHeaders = response.getAllHeaders();
-        JSONObject hs = new JSONObject();
-        JSONObject cookie = new JSONObject();
-        for (Header header : allHeaders) {
-            // 如果发现set-cookie字段
-            if (header.getName().equals(HttpClientConstant.SET_COOKIE)) {
-                String[] split = header.getValue().split(EQUAL, 2);
-                cookie.put(split[0], split[1]);
-                continue;
-            }
-            // 如果未发现
-            hs.compute(header.getName(), (x, y) -> {
-                if (y == null) {
-                    return header.getValue();
-                } else {
-                    return hs.getString(header.getName()) + PART + header.getValue();
-                }
-            });
-        }
-        if (!cookie.isEmpty()) hs.put(HttpClientConstant.COOKIE, cookie);
-        return hs;
+    Request addArgs(JSONObject args) {
+        this.args.putAll(args);
+        return this;
     }
 
+    Request addParams(JSONObject params) {
+        this.params.putAll(params);
+        return this;
+    }
 
+    Request addJson(JSONObject json) {
+        this.json.putAll(json);
+        return this;
+    }
+
+//    /**
+//     * 获取请求响应，兼容相关参数方法，不包括file
+//     *
+//     * @return
+//     */
+//    JSONObject getResponse() {
+//        response = response.isEmpty() ? EntityHandler.getHttpResponse(request == null ? getRequest() : request) : response;
+//        return response;
+//    }
+
+//    /**
+//     * 从request base对象从初始化request
+//     * @param base
+//     * @return
+//     */
+//    static Request initFromRequest(HttpRequestBase base) {
+//        Request request = null;
+//        String method = base.getMethod();
+//        String uri = base.getURI().toString();
+//        RequestType requestType = RequestType.getInstance(method);
+//        List<Header> headers = Arrays.asList(base.getAllHeaders());
+//        if (requestType == RequestType.GET) {
+//            request = isGet().setUri(uri).addHeader(headers);
+//        } else if (requestType == RequestType.POST) {
+//            HttpPost post = (HttpPost) base;
+//            HttpEntity entity = post.getEntity();
+//            if (entity == null) {
+//                request = isPost().setUri(uri).addHeader(headers);
+//            } else {
+//                Header type = entity.getContentType();
+//                String value = type == null ? EMPTY : type.getValue();
+//                String content = EntityHandler.getContent(entity);
+//                if (value.equalsIgnoreCase(HttpClientConstant.ContentType_TEXT.getValue()) || value.equalsIgnoreCase(HttpClientConstant.ContentType_JSON.getValue())) {
+//                    request = isPost().setUri(uri).addHeader(headers).addJson(JSONObject.parseObject(content));
+//                } else if (value.equalsIgnoreCase(HttpClientConstant.ContentType_FORM.getValue())) {
+//                    request = isPost().setUri(uri).addHeader(headers).addParams(getJson(content.split("&")));
+//                }
+//            }
+//        } else if (requestType == RequestType.PUT) {
+//            HttpPut put = (HttpPut) base;
+//            String content = EntityHandler.getContent(put.getEntity());
+//            request = isPut().setUri(uri).addHeader(headers).setJson(JSONObject.parseObject(content));
+//        } else if (requestType == RequestType.DELETE) {
+//            request = isDelete().setUri(uri);
+//        } else {
+//            RequestException.fail("不支持的请求类型!");
+//        }
+//        return request;
+//    }
 }

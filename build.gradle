@@ -1,16 +1,23 @@
 plugins {
-//    id 'java-library'
     id 'java'
+    id 'maven-publish'
+    id 'signing'
 }
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
-group 'zzsuki'
-version '1.0-SNAPSHOT'
+group 'io.github.zzsuki'
+version '1.0'
+
 
 repositories {
     mavenCentral()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 //sourceSets {
@@ -35,7 +42,7 @@ dependencies {
     implementation group: 'org.apache.httpcomponents', name: 'httpmime', version: '4.5.5'
     implementation group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.1.4'
     implementation group: 'commons-beanutils', name: 'commons-beanutils', version: '1.8.0'
-    implementation 'org.apache.commons:commons-pool2:2.4.2'
+    implementation 'org.apache.commons:commons-pool2:2.11.1'
     compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
 }
 
@@ -47,4 +54,76 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+task sourceJar(type: Jar) {
+    classifier "sources"
+    from sourceSets.main.allJava
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier "javadoc"
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives javadocJar
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            customizePom(pom)
+            artifactId = 'jmetertools'
+            groupId = 'io.github.zzsuki'
+            version = "1.0"
+            from components.java
+
+            // create the sign pom artifact
+            pom.withXml {
+                def pomFile = file("${project.buildDir}/generated-pom.xml")
+                writeTo(pomFile)
+                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
+                artifact(pomAscFile) {
+                    classifier = null
+                    extension = 'pom.asc'
+                }
+            }
+
+            artifact(sourceJar) {
+                classifier = 'sources'
+            }
+            artifact(javadocJar) {
+                classifier = 'javadoc'
+            }
+
+            // create the signed artifacts
+            project.tasks.signArchives.signatureFiles.each {
+                artifact(it) {
+                    def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
+                    if (matcher.find()) {
+                        classifier = matcher.group(1)
+                    } else {
+                        classifier = null
+                    }
+                    extension = 'jar.asc'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                username "zzsuki"
+                password "9e$a*ykMSPPm.Q6"
+            }
+        }
+    }
+}
+
+signing {
+    sign configurations.archives
 }

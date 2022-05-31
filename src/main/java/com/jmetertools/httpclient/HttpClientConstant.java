@@ -72,6 +72,13 @@ public class HttpClientConstant {
 
     public static Header X_Requested_KWith = getHeader("X-Requested-With", "XMLHttpRequest");
 
+    public static Header DEFAULT_CONTENT_TYPE = ContentType_JSON;
+
+    /**
+     * agent 设置
+     */
+    public static Header USER_AGENT = getHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36");
+
     /**
      * 在设置请求content type参数，表示请求以io流发送数据
      */

@@ -142,5 +142,13 @@ public class Constant {
      */
     public static Charset DEFAULT_CHARSET = UTF_8;
 
+    /**
+     * 默认响应内容的key
+     */
+    public static final String RESPONSE_CONTENT = "content";
+
+    public static final long DEFAULT_LONG = 0L;
+
+    public static final String DEFAULT_STATUS_STRING = "status";
 
 }

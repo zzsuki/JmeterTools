@@ -1,19 +1,13 @@
 import com.alibaba.fastjson.JSONObject;
+import com.jmetertools.httpclient.PostRequestFactory;
 import com.jmetertools.utils.JsonUtil;
-import groovy.json.JsonOutput;
-import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.junit.Before;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import com.jmetertools.httpclient.ClientManager;
-import com.jmetertools.httpclient.Request;
 
 import java.io.IOException;
 
@@ -25,7 +19,7 @@ public class TestRequest {
     void testPostRequest(){
         JSONObject params = new JSONObject();
         params.put("captcha", "1234");
-        HttpPost httpPost = Request.getHttpPost("https://10.20.1.219/api/v1/user/captcha/", params);
+        HttpPost httpPost = PostRequestFactory.createRequest("https://10.20.1.219/api/v1/user/captcha/", params);
         CloseableHttpResponse response = null;
         try {
             response = client.execute(httpPost);
