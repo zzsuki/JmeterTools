@@ -191,6 +191,7 @@ public class JsonUtil {
      * 将json string映射为指定类的实例
      * @param jsonString json字符串
      * @param className 需要映射的类
+     * @param <T> 泛型类型
      * @return 类的实例对象
      */
     public <T> Object parseJavaBean(String jsonString, Class<T> className){
@@ -200,6 +201,7 @@ public class JsonUtil {
     /**
      * 序列化指定对象
      * @param object 待序列化的对象
+     * @param <T> 泛型类型
      * @return 字符串
      */
     public static <T> String toString(T object){
@@ -210,6 +212,7 @@ public class JsonUtil {
      * 序列化指定对象
      * @param object 待序列化的对象
      * @param feature 序列化特性，可以对序列化后的字符串进行自定义格式配置。eg: QuoteFieldNames可使key使用引号; UseSingleQuotes可使用单引号
+     * @param <T> 泛型类型
      * @return 字符串
      */
     public static <T> String toString(T object, SerializerFeature feature){

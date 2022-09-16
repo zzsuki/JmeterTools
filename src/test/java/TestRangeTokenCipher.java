@@ -1,6 +1,6 @@
 import com.jmetertools.cipher.RangeTokenCipher;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
+import org.testng.annotations.Test;
+import org.testng.Assert;
 
 
 public class TestRangeTokenCipher {
@@ -16,7 +16,7 @@ public class TestRangeTokenCipher {
             String newToken = cipher.encrypt(chaosToken);
             System.out.println(newToken);
             String newChaosToken = cipher.decrypt(newToken);
-            Assertions.assertEquals(chaosToken, newChaosToken);
+            Assert.assertEquals(chaosToken, newChaosToken);
         }
     }
 }

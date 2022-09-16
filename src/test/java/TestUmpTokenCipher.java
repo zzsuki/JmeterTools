@@ -1,6 +1,7 @@
 import com.jmetertools.cipher.UmpTokenCipher;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 
 public class TestUmpTokenCipher {
     @Test
@@ -15,7 +16,7 @@ public class TestUmpTokenCipher {
             String newToken = cipher.encrypt(chaosToken);
             System.out.println(newToken);
             String newChaosToken = cipher.decrypt(newToken);
-            Assertions.assertEquals(chaosToken, newChaosToken);
+            Assert.assertEquals(chaosToken, newChaosToken);
         }
     }
 }

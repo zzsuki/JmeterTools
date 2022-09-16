@@ -11,16 +11,23 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.jupiter.api.BeforeAll;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
+import org.testng.annotations.Ignore;
 
 import java.io.IOException;
 
+
+@Ignore("no env")
 class TestRangeUser{
-    private static Logger logger =  LogManager.getLogger(TestRangeUser.class);
+    private static final Logger logger =  LogManager.getLogger(TestRangeUser.class);
 
     private static String decryptedToken = null;
-    private static CloseableHttpClient httpClient = ClientManager.httpClient;
-    private static AbCipher tokenCipher = CipherFactory.createCipher("range/token");
+    private static final CloseableHttpClient httpClient = ClientManager.httpClient;
+    private static final AbCipher tokenCipher = CipherFactory.createCipher("range/token");
 
     static void doAdminLogin(){
         JSONObject params = new JSONObject();
@@ -47,7 +54,7 @@ class TestRangeUser{
         }
     }
 
-    @BeforeAll
+    @BeforeClass
     static void doLogin(){
         JSONObject params = new JSONObject();
         params.put("username", "Admin");

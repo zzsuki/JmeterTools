@@ -79,6 +79,8 @@ public class EntityHandler {
 
     /**
      * 设置{@link HttpPost}接口json数据实体，默认的编码格式
+     * @param request http请求
+     * @param params 实体数据内容
      */
     protected static void setJsonHttpEntity(HttpEntityEnclosingRequestBase request, JSONObject params) {
         StringEntity stringEntity = new StringEntity(params.toString(), "UTF-8");
@@ -211,9 +213,9 @@ public class EntityHandler {
     /**
      * 获取响应状态，暂不处理{@link HttpStatus#SC_MOVED_TEMPORARILY}
      *
-     * @param response
-     * @param res
-     * @return
+     * @param response 响应结果
+     * @param res 用于存储结果的json对象
+     * @return 响应码
      */
     public static int getStatus(CloseableHttpResponse response, JSONObject res) {
         int status = response.getStatusLine().getStatusCode();

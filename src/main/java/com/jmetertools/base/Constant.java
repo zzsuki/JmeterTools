@@ -33,7 +33,6 @@ public class Constant {
     /**
      * 获取宽字符集合，一般用于速记取样；本身是一个lambda函数，获取return值时需要调用Supplier.get()
      *
-     * return: List<String>
      */
     public static Supplier<List<String>> BROAD_CHAR_SET = () -> {
         List<String> charSet = new ArrayList<>();
@@ -45,8 +44,6 @@ public class Constant {
 
     /**
      * 获取数字字符集合，一般用于速记取样；本身是一个lambda函数，获取return值时需要调用Supplier.get()
-     *
-     * return:  List<String>
      */
     public static Supplier<List<String>> NUMBERS = () -> {
         List<String> charSet = new ArrayList<>();
@@ -55,6 +52,7 @@ public class Constant {
         }
         return charSet;
     };
+
     /**
      * 获取字母字符集合(包括大小写)，一般用于速记取样；本身是一个lambda函数，获取return值时需要调用Supplier.get()
      */

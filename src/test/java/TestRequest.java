@@ -5,15 +5,17 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
+import org.testng.annotations.Ignore;
+import org.testng.Assert;
 import com.jmetertools.httpclient.ClientManager;
 
 import java.io.IOException;
 
 
+@Ignore("no env")
 public class TestRequest {
-    private static CloseableHttpClient client = ClientManager.httpClient;
+    private static final CloseableHttpClient client = ClientManager.httpClient;
 
     @Test
     void testPostRequest(){
@@ -26,8 +28,8 @@ public class TestRequest {
             if (response != null) {
                 String content = EntityUtils.toString(response.getEntity(), "UTF-8");
                 JSONObject contentJson = JsonUtil.parseObject(content);
-                Assertions.assertEquals("1234", contentJson.getString("captcha"));
-                Assertions.assertEquals(200, response.getStatusLine().getStatusCode());
+                Assert.assertEquals("1234", contentJson.getString("captcha"));
+                Assert.assertEquals(200, response.getStatusLine().getStatusCode());
                 response.close();
             }
         } catch (IOException e) {

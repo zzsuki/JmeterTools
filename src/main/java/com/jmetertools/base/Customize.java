@@ -466,9 +466,9 @@ public class Customize {
      * 根据不同的概率随机出一个对象集合
      * 消耗内存多
      *
-     * @param count
-     * @param <F>
-     * @return
+     * @param count 概率map
+     * @param <F> 泛型类型
+     * @return 随机集合
      */
     public static <F> List<F> randomMem(Map<F, Integer> count) {
         List<F> keys = new ArrayList<>();
@@ -519,8 +519,8 @@ public class Customize {
     /**
      * 获取一个intsteam，默认从0开始,num为止,不包含num
      *
-     * @param num
-     * @return
+     * @param num 边界值，不包含
+     * @return int stream
      */
     public static IntStream range(int num) {
         return IntStream.range(0, num);
@@ -530,8 +530,8 @@ public class Customize {
     /**
      * 将对象转换成JSON
      *
-     * @param o
-     * @return
+     * @param o 待转对象
+     * @return 转换后的json对象
      */
     public static JSONObject parse(Object o) {
         return parse(JSON.toJSONString(o));
@@ -583,7 +583,7 @@ public class Customize {
     /**
      * 获取方法的执行时间
      *
-     * @param supplier
+     * @param supplier 方法容器
      */
     public static void time(Supplier supplier) {
         time(supplier, 1);
@@ -608,6 +608,7 @@ public class Customize {
      * 获取方法的执行时间
      *
      * @param f     执行方法
+     * @param name 名称
      * @param times 执行次数
      */
     public static void time(Supplier f, int times, String name) {
@@ -629,7 +630,7 @@ public class Customize {
     /**
      * 取消方法执行过程中的异常显示
      *
-     * @param supplier
+     * @param supplier 待处理内容
      */
     public static void noError(Supplier supplier) {
         try {
@@ -654,7 +655,7 @@ public class Customize {
      *
      * @param t   需要被拷贝的对象,必需实现 Serializable接口,不然会报错
      * @param <T> 需要拷贝对象的类型
-     * @return
+     * @return 克隆后的对象
      */
     public static <T> T deepClone(T t) {
         try {

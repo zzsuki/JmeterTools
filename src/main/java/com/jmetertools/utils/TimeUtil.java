@@ -9,41 +9,27 @@ import com.jmetertools.base.Constant;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
  * 时间相关功能工具类
  */
 public class TimeUtil {
-    private static Logger logger = LogManager.getLogger(TimeUtil.class);
+    private static final Logger logger = LogManager.getLogger(TimeUtil.class);
 
     /**
      * 默认的日志显示格式
      */
-    private static ThreadLocal<SimpleDateFormat> DEFAULT_FORMAT = new ThreadLocal() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        }
-    };
+    private static final ThreadLocal<SimpleDateFormat> DEFAULT_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 
     /**
      * 纯数字的日期格式
      */
-    private static ThreadLocal<SimpleDateFormat> NUM_FORMAT = new ThreadLocal() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("yyyyMMddHHmmss");
-        }
-    };
+    private static final ThreadLocal<SimpleDateFormat> NUM_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyyMMddHHmmss"));
 
     /**
      * 标记日期格式,选用ddHHmm
      */
-    private static ThreadLocal<SimpleDateFormat> MARK_FORMAT = new ThreadLocal() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("ddHHmm");
-        }
-    };
+    private static final ThreadLocal<SimpleDateFormat> MARK_FORMAT = ThreadLocal.withInitial(() -> new SimpleDateFormat("ddHHmm"));
 
     /**
      * 获取calendar类对象，默认UTC时间
@@ -69,7 +55,7 @@ public class TimeUtil {
      * 获取UTC时间戳
      *
      * @param time 纯数字日期
-     * @return
+     * @return utc时间戳
      */
     public static long getUtcTimestamp(long time) {
         return getUtcTimestamp(time + Constant.EMPTY);
@@ -78,7 +64,7 @@ public class TimeUtil {
     /**
      * 获取一天开始，utc
      *
-     * @return
+     * @return 一天的起始时间
      */
     public static String getStartOfDay() {
         return getUtcDate() + " 00:00:00";
@@ -87,7 +73,7 @@ public class TimeUtil {
     /**
      * 获取一天结束，utc
      *
-     * @return
+     * @return 一天的结束时间，使用23:55:55
      */
     public static String getEndOfDay() {
         return getUtcDate() + " 23:55:55";
@@ -96,7 +82,7 @@ public class TimeUtil {
     /**
      * 获取当天日期，utc
      *
-     * @return
+     * @return 当日日期
      */
     public static String getUtcDate() {
         int month = getMonth();
@@ -112,14 +98,13 @@ public class TimeUtil {
      */
     public static long getUtcTimestamp(String time) {
         long timestamp = getTimeStamp(time);
-        long utc = timestamp + Calendar.getInstance().getTimeZone().getRawOffset();
-        return utc;
+        return timestamp + Calendar.getInstance().getTimeZone().getRawOffset();
     }
 
     /**
      * 获取当前星期数（按年）
      *
-     * @return
+     * @return 当前星期数
      */
     public static int getWeeksNum() {
         return calendarInit().get(Calendar.WEEK_OF_YEAR);
@@ -128,7 +113,7 @@ public class TimeUtil {
     /**
      * 获取月份,获取值+1,索引从0开始的
      *
-     * @return
+     * @return 当前月份
      */
     public static int getMonth() {
         return calendarInit().get(Calendar.MONTH) + 1;
@@ -137,7 +122,7 @@ public class TimeUtil {
     /**
      * 获取当前是当月的第几天
      *
-     * @return
+     * @return 当前天数(某月的)
      */
     public static int getDay() {
         return calendarInit().get(Calendar.DAY_OF_MONTH);
@@ -146,20 +131,32 @@ public class TimeUtil {
     /**
      * 获取年份
      *
-     * @return
+     * @return 当前年份
      */
     public static int getYear() {
         return calendarInit().get(Calendar.YEAR);
     }
 
+    /**
+     * 获取小时数
+     * @return 当前小时
+     */
     public static int getHour() {
         return calendarInit().get(Calendar.HOUR_OF_DAY);
     }
 
+    /**
+     * 获取分钟数
+     * @return 当前分钟数
+     */
     public static int getMinute() {
         return calendarInit().get(Calendar.MINUTE);
     }
 
+    /**
+     * 获取当前秒钟数
+     * @return 当前秒数
+     */
     public static int getSecond() {
         return calendarInit().get(Calendar.SECOND);
     }
@@ -173,14 +170,28 @@ public class TimeUtil {
         return getNow(NUM_FORMAT.get());
     }
 
+    /**
+     * 获取当前日期
+     * @return 当前日期
+     */
     public static String markDate() {
         return getNow(MARK_FORMAT.get());
     }
 
+    /**
+     * 获取当前格式化时间
+     * @param format 时间格式，String格式
+     * @return 格式化后的时间
+     */
     public static String getNow(String format) {
         return getNow(new SimpleDateFormat(format));
     }
 
+    /**
+     * 获取当前格式化时间
+     * @param now 时间格式, SimpleDateFormat类
+     * @return 格式化后的时间
+     */
     public static String getNow(SimpleDateFormat now) {
         return now.format(new Date());
     }
@@ -210,8 +221,7 @@ public class TimeUtil {
      */
     public static String getTimeByTimestamp(long time) {
         Date now = new Date(time);
-        String nowTime = DEFAULT_FORMAT.get().format(now);
-        return nowTime;
+        return DEFAULT_FORMAT.get().format(now);
     }
 
     /**
@@ -219,7 +229,7 @@ public class TimeUtil {
      *
      * @param start 开始时间
      * @param end   结束时间
-     * @return
+     * @return 时间差
      */
     @Deprecated
     public static double getTimeDiffer(Date start, Date end) {
@@ -229,9 +239,9 @@ public class TimeUtil {
     /**
      * 重载，用long类型取代date
      *
-     * @param start
-     * @param end
-     * @return
+     * @param start 开始时间
+     * @param end 结束时间
+     * @return 时间差
      */
     public static double getTimeDiffer(long start, long end) {
         return (end - start) / 1000.0;
@@ -240,7 +250,7 @@ public class TimeUtil {
     /**
      * 获取当前时间,返回默认格式时间
      *
-     * @return
+     * @return 当前时间(格式)
      */
     public static String getDate() {
         return getNow(DEFAULT_FORMAT.get());

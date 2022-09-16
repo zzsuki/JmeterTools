@@ -39,6 +39,7 @@ public class DecodeEncode extends Constant{
      * url进行转码，常用于网络请求
      *
      * @param text 需要转码的文本
+     * @param charset 字符集
      * @return 返回转码后的文本
      */
     public static String encodeUrl(String text, Charset charset) {
@@ -55,6 +56,7 @@ public class DecodeEncode extends Constant{
      * url进行解码，常用于解析响应，默认是UTF-8字符集
      *
      * @param text 需要解码的文本
+     * @param charset 字符集
      * @return 解码后的文本
      */
     public static String decodeUrl(String text, Charset charset) {

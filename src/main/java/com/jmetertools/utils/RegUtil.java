@@ -20,7 +20,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
  * 正则工具的封装
  */
 public class RegUtil {
-    private static Logger logger = LogManager.getLogger(RegUtil.class);
+    private static final Logger logger = LogManager.getLogger(RegUtil.class);
 
     /**
      * 检查文本是否命中正则
@@ -61,7 +61,7 @@ public class RegUtil {
      *
      * @param text  需要匹配的文本
      * @param regex 正则表达式
-     * @return List<String>
+     * @return 查找到的所有内容
      */
     public static List<String> findAll(String text, String regex) {
         Matcher matcher = getMatcher(text, regex);
@@ -85,35 +85,14 @@ public class RegUtil {
         return EMPTY;
     }
 
-//    /**
-//     * 获取匹配项，不包含文字信息，会删除regex的内容
-//     * <p>不保证完全正确</p>
-//     *
-//     * @param text
-//     * @param regex
-//     * @return
-//     */
-//    @Deprecated
-//    public static String getRegex(String text, String regex) {
-//        if (StringUtils.isAnyBlank(text, regex)) ParamException.fail("正则参数错误!");
-//        String result = EMPTY;
-//        try {
-//            result = findAll(text, regex).get(0);
-//            String[] split = regex.split("(\\.|\\+|\\*|\\?)");
-//            for (int i = 0; i < split.length; i++) {
-//                String s1 = split[i];
-//                if (!s1.isEmpty())
-//                    result = result.replaceAll(s1, EMPTY);
-//            }
-//        } catch (Exception e) {
-//            logger.warn("获取匹配对象失败！", e);
-//        } finally {
-//            return result;
-//        }
-//    }
 
-
-
+    /**
+     * 通过regexp表达式，匹配指定index的字符串并返回
+     * @param reg 正则表达式
+     * @param sourceString 待查找的字符串
+     * @param index 下标，如查到多个时，返回该下标的对应的内容
+     * @return 指定位置的查找结果
+     */
     public static String getRegStringWithIndex(String reg, String sourceString, int index){
         // .*(\d-\d+)$
         Pattern pattern = Pattern.compile(reg);

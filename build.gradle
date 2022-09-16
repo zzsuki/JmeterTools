@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'signing'
+    id 'maven'
 }
 
 sourceCompatibility = '1.8'
@@ -13,27 +14,18 @@ version '1.0'
 
 repositories {
     mavenCentral()
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-//sourceSets {
-//    main {
-//        java {
-//            srcDirs 'src/main/java'
-//        }
+//    maven {
+//        url 'https://oss.sonatype.org/content/repositories/snapshots'
 //    }
-//}
+//    maven { url "http://repo.experitest.com:8010/Maven2/" }
+//    maven { url "http://repo.maven.apache.org/maven2" }
+//    maven { url "http://mvnrepository.com/maven2" }
+}
+
 
 dependencies {
     implementation 'org.codehaus.groovy:groovy-all:3.0.10'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.8.2'
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.2'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.8.2'
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.8.2'
+    testImplementation group: 'org.testng', name: 'testng', version: '7.1.0'
     implementation group: 'com.alibaba', name: 'fastjson', version: '1.2.76'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.17.1'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'
@@ -46,14 +38,9 @@ dependencies {
     compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
 }
 
-//java {
-//    toolchain {
-//        languageVersion.set(JavaLanguageVersion.of(8))
-//    }
-//}
 
 test {
-    useJUnitPlatform()
+    useTestNG()
 }
 
 task sourceJar(type: Jar) {
@@ -61,9 +48,14 @@ task sourceJar(type: Jar) {
     from sourceSets.main.allJava
 }
 
+javadoc {
+    failOnError = false
+
+}
+
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier "javadoc"
-    from javadoc.destinationDir
+    from javadoc
 }
 
 artifacts {
@@ -72,53 +64,33 @@ artifacts {
     archives javadocJar
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            customizePom(pom)
-            artifactId = 'jmetertools'
             groupId = 'io.github.zzsuki'
+            artifactId = 'jmetertools'
             version = "1.0"
             from components.java
 
-            // create the sign pom artifact
-            pom.withXml {
-                def pomFile = file("${project.buildDir}/generated-pom.xml")
-                writeTo(pomFile)
-                def pomAscFile = signing.sign(pomFile).signatureFiles[0]
-                artifact(pomAscFile) {
-                    classifier = null
-                    extension = 'pom.asc'
-                }
-            }
-
-            artifact(sourceJar) {
-                classifier = 'sources'
-            }
-            artifact(javadocJar) {
-                classifier = 'javadoc'
-            }
-
-            // create the signed artifacts
-            project.tasks.signArchives.signatureFiles.each {
-                artifact(it) {
-                    def matcher = it.file =~ /-(sources|javadoc)\.jar\.asc$/
-                    if (matcher.find()) {
-                        classifier = matcher.group(1)
-                    } else {
-                        classifier = null
-                    }
-                    extension = 'jar.asc'
-                }
-            }
+//            artifact(sourceJar) {
+//                classifier = 'sources'
+//            }
+//            artifact(javadocJar) {
+//                classifier = 'javadoc'
+//            }
         }
     }
     repositories {
         maven {
             url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
             credentials {
-                username "zzsuki"
-                password "9e$a*ykMSPPm.Q6"
+                username "zzsui"
+                password "9e\$a*ykMSPPm.Q6"
             }
         }
     }
@@ -126,4 +98,49 @@ publishing {
 
 signing {
     sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: "zzsuki", password: "19940129Wd")
+            }
+
+            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: "zzsuki", password: "19940129Wd")
+            }
+
+            pom.project {
+                name = 'JmeterTools'
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description 'tools set for jmeter'
+                url 'http://www.example.com/example-application'
+
+                scm {
+                    connection 'scm:svn:http://foo.googlecode.com/svn/trunk/'
+                    developerConnection 'scm:svn:https://foo.googlecode.com/svn/trunk/'
+                    url 'http://foo.googlecode.com/svn/trunk/'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'manfred'
+                        name 'Manfred Moser'
+                        email 'manfred@sonatype.com'
+                    }
+                }
+            }
+        }
+    }
 }

@@ -4,20 +4,16 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.junit.Before;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import com.jmetertools.httpclient.ClientManager;
-
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class TestHttpClientPooling extends BaseHttpClientTest {
-    private static CloseableHttpClient client = ClientManager.httpClient;;
+    private static final CloseableHttpClient client = ClientManager.httpClient;
 
-    @Before
+    @BeforeMethod
     public void before() {
 //        initHttpClient();
     }
