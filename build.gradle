@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'maven-publish'
-    id 'signing'
+//    id 'maven-publish'
+//    id 'signing'
 //    id 'maven'
 }
 
@@ -43,39 +43,39 @@ test {
     useTestNG()
 }
 
-task sourceJar(type: Jar) {
-    classifier "sources"
-    from sourceSets.main.allJava
-}
+//task sourceJar(type: Jar) {
+//    classifier "sources"
+//    from sourceSets.main.allJava
+//}
 
-javadoc {
-    failOnError = false
+//javadoc {
+//    failOnError = false
+//
+//}
 
-}
+//task javadocJar(type: Jar, dependsOn: javadoc) {
+//    classifier "javadoc"
+//    from javadoc
+//}
+//
+//artifacts {
+//    archives jar
+//    archives sourceJar
+//    archives javadocJar
+//}
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier "javadoc"
-    from javadoc
-}
+//java {
+//    withJavadocJar()
+//    withSourcesJar()
+//}
 
-artifacts {
-    archives jar
-    archives sourceJar
-    archives javadocJar
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId = 'io.github.zzsuki'
-            artifactId = 'jmetertools'
-            version = "1.0"
-            from components.java
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication) {
+//            groupId = 'io.github.zzsuki'
+//            artifactId = 'jmetertools'
+//            version = "1.0"
+//            from components.java
 
 //            artifact(sourceJar) {
 //                classifier = 'sources'
@@ -83,64 +83,64 @@ publishing {
 //            artifact(javadocJar) {
 //                classifier = 'javadoc'
 //            }
-        }
-    }
-    repositories {
-        maven {
-            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-            credentials {
-                username "zzsui"
-                password "9e\$a*ykMSPPm.Q6"
-            }
-        }
-    }
-}
-
-signing {
-    sign configurations.archives
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: "zzsuki", password: "19940129Wd")
-            }
-
-            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: "zzsuki", password: "19940129Wd")
-            }
-
-            pom.project {
-                name = 'JmeterTools'
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description 'tools set for jmeter'
-                url 'http://www.example.com/example-application'
-
-                scm {
-                    connection 'scm:svn:http://foo.googlecode.com/svn/trunk/'
-                    developerConnection 'scm:svn:https://foo.googlecode.com/svn/trunk/'
-                    url 'http://foo.googlecode.com/svn/trunk/'
-                }
-
-                licenses {
-                    license {
-                        name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'manfred'
-                        name 'Manfred Moser'
-                        email 'manfred@sonatype.com'
-                    }
-                }
-            }
-        }
-    }
-}
+//        }
+//    }
+//    repositories {
+//        maven {
+//            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+//            credentials {
+//                username "zzsui"
+//                password "9e\$a*ykMSPPm.Q6"
+//            }
+//        }
+//    }
+//}
+//
+//signing {
+//    sign configurations.archives
+//}
+//
+//uploadArchives {
+//    repositories {
+//        mavenDeployer {
+//            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+//
+//            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+//                authentication(userName: "zzsuki", password: "19940129Wd")
+//            }
+//
+//            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+//                authentication(userName: "zzsuki", password: "19940129Wd")
+//            }
+//
+//            pom.project {
+//                name = 'JmeterTools'
+//                packaging 'jar'
+//                // optionally artifactId can be defined here
+//                description 'tools set for jmeter'
+//                url 'http://www.example.com/example-application'
+//
+//                scm {
+//                    connection 'scm:svn:http://foo.googlecode.com/svn/trunk/'
+//                    developerConnection 'scm:svn:https://foo.googlecode.com/svn/trunk/'
+//                    url 'http://foo.googlecode.com/svn/trunk/'
+//                }
+//
+//                licenses {
+//                    license {
+//                        name 'The Apache License, Version 2.0'
+//                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                    }
+//                }
+//
+//                developers {
+//                    developer {
+//                        id 'manfred'
+//                        name 'Manfred Moser'
+//                        email 'manfred@sonatype.com'
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
