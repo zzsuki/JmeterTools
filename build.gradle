@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'signing'
-    id 'maven'
+//    id 'maven'
 }
 
 sourceCompatibility = '1.8'
